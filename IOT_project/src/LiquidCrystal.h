@@ -75,7 +75,6 @@ public:
   virtual size_t write(uint8_t);
   void command(uint8_t);
   void print(std::string const &s);
-  void print(const char *s);
 
 private:
   void send(uint8_t, uint8_t);

@@ -47,7 +47,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/lpc_chip_15xx/inc/usbd}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/IOT_project/src}&quot;"/>
 								</option>
-								<option id="com.crt.advproject.cpp.misc.dialect.456425099" name="Language standard" superClass="com.crt.advproject.cpp.misc.dialect" value="com.crt.advproject.misc.dialect.gnupp11" valueType="enumerated"/>
+								<option id="com.crt.advproject.cpp.misc.dialect.456425099" name="Language standard" superClass="com.crt.advproject.cpp.misc.dialect" useByScannerDiscovery="true" value="com.crt.advproject.misc.dialect.gnupp11" valueType="enumerated"/>
 								<inputType id="com.crt.advproject.compiler.cpp.input.179966313" superClass="com.crt.advproject.compiler.cpp.input"/>
 							</tool>
 							<tool command="arm-none-eabi-gcc" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GCCErrorParser" id="com.crt.advproject.gcc.exe.debug.1361833590" name="MCU C Compiler" superClass="com.crt.advproject.gcc.exe.debug">
@@ -188,7 +188,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/lpc_chip_15xx/inc/usbd}&quot;"/>
 									<listOptionValue builtIn="false" value="/IOT_project/src"/>
 								</option>
-								<option id="com.crt.advproject.cpp.misc.dialect.111222935" name="Language standard" superClass="com.crt.advproject.cpp.misc.dialect" value="com.crt.advproject.misc.dialect.gnupp11" valueType="enumerated"/>
+								<option id="com.crt.advproject.cpp.misc.dialect.111222935" name="Language standard" superClass="com.crt.advproject.cpp.misc.dialect" value="com.crt.advproject.misc.dialect.cpp11" valueType="enumerated"/>
 								<option id="com.crt.advproject.cpp.exe.release.option.optimization.level.741292981" name="Optimization Level" superClass="com.crt.advproject.cpp.exe.release.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 								<option id="com.crt.advproject.cpp.exe.release.option.debugging.level.1260241495" name="Debug Level" superClass="com.crt.advproject.cpp.exe.release.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 								<inputType id="com.crt.advproject.compiler.cpp.input.1268877231" superClass="com.crt.advproject.compiler.cpp.input"/>

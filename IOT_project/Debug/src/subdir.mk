@@ -5,6 +5,7 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
 ../src/DigitalIoPin.cpp \
+../src/Fmutex.cpp \
 ../src/IOT_project.cpp \
 ../src/LiquidCrystal.cpp \
 ../src/cr_cpp_config.cpp \
@@ -20,6 +21,7 @@ C_SRCS += \
 
 OBJS += \
 ./src/DigitalIoPin.o \
+./src/Fmutex.o \
 ./src/IOT_project.o \
 ./src/ITM_write.o \
 ./src/LiquidCrystal.o \
@@ -33,6 +35,7 @@ OBJS += \
 
 CPP_DEPS += \
 ./src/DigitalIoPin.d \
+./src/Fmutex.d \
 ./src/IOT_project.d \
 ./src/LiquidCrystal.d \
 ./src/cr_cpp_config.d \

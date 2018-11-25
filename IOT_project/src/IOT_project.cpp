@@ -23,37 +23,37 @@
 #include "DigitalIoPin.h"
 #include "LiquidCrystal.h"
 #include "string.h"
+#include "math.h"
 #include "user_vcom.h"
+#include "event_groups.h"
+#include "Fmutex.h"
+
+#define manual	( 1 << 0 )
+#define automatic	( 1 << 1 )
+#define tuning	( 1 << 2 )
+#define temp_manual	(1 << 3)
+
+Fmutex *mutex;
 SemaphoreHandle_t xSemaphore;
-DigitalIoPin *out;
-DigitalIoPin *sw1;
-DigitalIoPin *sw2;
-DigitalIoPin *sw3;
-DigitalIoPin *sw4;
-DigitalIoPin *tighten;
-DigitalIoPin *loosen;
-DigitalIoPin *rs;
-DigitalIoPin *en;
-DigitalIoPin *d4;
-DigitalIoPin *d5;
-DigitalIoPin *d6;
-DigitalIoPin *d7;
+EventGroupHandle_t xEventGroup;
+DigitalIoPin *out, *sw1, *sw2, *sw3, *sw4, *tighten, *loosen, *rs, *en, *d4, *d5, *d6, *d7;
 LiquidCrystal *lcd;
-int menu,string,i,mode=0;
-float detected_frequency;
-enum modes{
-	manual,
-	automatic,
-	tuning
-};
+
+int string,i=0;
+
+float detected_frequency = 0.0;
 // TODO: insert other include files here
 struct tunes{
-	std::string names;
+	std::string names[6];
 	float strings[6];
 };
 
-tunes pre_tunings[1] = {"E4 a2 d3!g3 b3 e2",82.4,110.0,146.83,196.0,246.9,329.6};
-tunes desired_tuning = pre_tunings[0];
+tunes pre_tunings[3] = {
+		{"","","","","","",82.4,110.0,146.83,196.0,246.9,329.6},
+		{"E4"," a2"," d3"," g3"," b3"," e2",82.4,110.0,146.83,196.0,246.9,329.6},
+		{"","","","","","       testi",123.4,342.0,65.8,34.0,234.9,123.5}
+};
+tunes desired_tuning = pre_tunings[1];
 enum strings{
 	E,
 	a,
@@ -82,7 +82,7 @@ void SCT_Init(void)
 	LPC_SCT0->EVENT[0].STATE = 0xFFFFFFFF; // event 0 happens in all states
 	LPC_SCT0->EVENT[0].CTRL = (1 << 12);
 
-	LPC_SCT0->MATCHREL[1].L = 1000; // match 1 used for duty cycle (in 10 steps)
+	LPC_SCT0->MATCHREL[1].L = 2550; // match 1 used for duty cycle (in 10 steps)
 	LPC_SCT0->EVENT[1].STATE = 0xFFFFFFFF; // event 0 happens in all states
 	LPC_SCT0->EVENT[1].CTRL = (1 << 0) | (1 << 12);
 	LPC_SCT0->OUT[0].SET = (1 << 0); // event 0 will set SCTx_OUT0
@@ -91,25 +91,44 @@ void SCT_Init(void)
 	LPC_SCT0->CTRL_L &= ~(1 << 2); // unhalt it by clearing bit 2 of CTRL reg
 }
 static void vDisplay(void *param) {
-	std::string manual_str = "     MANUAL";
-	const std::string automatic_str = "  E a d g b e  !"+ std::to_string(detected_frequency)+" -> ";
-	std::string automatic_str_temp;
+	char buffer[41];
+	std::string manual_str = "     MANUAL MODE!B1=loosen B4=tighten";
+	const std::string automatic_str = "AUTO    E a d g b e!";
+	std::string temp;
 	std::string half_names;
+	int counter = 0;
+	EventBits_t bits;
 	while(1){
-		switch(menu){
-		case manual:
-			lcd->print(manual_str);
-			break;
-		case automatic:
-			automatic_str_temp = automatic_str + std::to_string(desired_tuning.strings[string]) ;
-			automatic_str_temp[(string*2)+3] = ' ';
-			lcd->print(automatic_str_temp);
-			break;
-		case tuning:
-			lcd->print(pre_tunings[i].names);
-			break;
+		bits = xEventGroupGetBits(xEventGroup);
 
+		if((bits & manual) != 0){
+			lcd->print(manual_str);
 		}
+
+		else if((bits & automatic) != 0){
+			sprintf(buffer,"%.1f -> %.1f %s",detected_frequency,desired_tuning.strings[string],desired_tuning.names[string].c_str());
+			temp = automatic_str + buffer;
+			if(counter%2==0){
+				temp[(string*2)+8] = ' ';
+			}
+			lcd->print(temp);
+			counter++;
+		}
+
+		else if((bits & tuning) != 0){
+			if(i==0){
+				temp = "     CUSTOM!B2=cancel B3=select";
+				lcd->print(temp);
+			}
+			else{
+			sprintf(buffer,"%s%s%s%s%s%s!B2=cancel B3=select",pre_tunings[i].names[0].c_str(),pre_tunings[i].names[1].c_str(),pre_tunings[i].names[2].c_str(),
+					pre_tunings[i].names[3].c_str(),pre_tunings[i].names[4].c_str(),pre_tunings[i].names[5].c_str());
+			temp=buffer;
+			lcd->print(temp);
+			}
+		}
+
+
 		vTaskDelay(100);
 	}
 }
@@ -136,7 +155,7 @@ static void vPID(void *param) {
 	double output;
 	while(1){
 
-		if(mode==automatic){
+		if((xEventGroupGetBits(xEventGroup) & automatic) != 0){
 			error = desired_tuning.strings[string] - detected_frequency;
 			Pout = _Kp * error;
 
@@ -150,7 +169,21 @@ static void vPID(void *param) {
 
 			_pre_error = error;
 
-			if (output<0){
+			//use sct
+
+			//LPC_SCT0->MATCHREL[1].L =
+
+
+			/*tighten->write(false);
+			loosen->write(true);
+			vTaskDelay(10);
+			tighten->write(false);		//test program
+			loosen->write(false);
+			vTaskDelay(1000);
+			 */
+
+
+			/*if (output<0){
 				tighten->write(false);
 				loosen->write(true);
 
@@ -159,6 +192,7 @@ static void vPID(void *param) {
 				tighten->write(true);
 				loosen->write(false);
 			}
+			 */
 			//vTaskDelay(output*?);
 		}
 		vTaskDelay(100);
@@ -167,18 +201,21 @@ static void vPID(void *param) {
 static void vFrequency(void *param) {
 	while(1){
 		//calculations and shit
-		/*detected_frequency = ?;
+		/*detected_frequency = ?;		//use mutex when writing the freq
 		vTaskDelay(?);*/
 		vTaskDelay(10);
 	}
 }
 static void vMotor(void *param) {
 	int cnt=0;
-
+	int pre_tuning_total = 3;					//add custom
+	EventBits_t bits;
+	EventBits_t temp_bits;
 	while(1){
-		switch(menu){
+		bits=xEventGroupGetBits(xEventGroup);
 
-		case manual:
+		//manual
+		if((bits & manual) != 0){
 			if(sw1->read()){
 				tighten->write(true);
 				loosen->write(false);
@@ -195,42 +232,66 @@ static void vMotor(void *param) {
 				}
 				loosen->write(false);
 			}
-			/*if(sw2->read()){
+			if(sw2->read()){
 				while(sw2->read()){
+					vTaskDelay(1);
+				}
+				xEventGroupClearBits(xEventGroup,manual);
+				xEventGroupSetBits(xEventGroup,tuning | temp_manual);
+			}
+			if(sw3->read()){
+				while(sw3->read() && cnt <= 500){
 					vTaskDelay(1);
 					cnt++;
 				}
-				if(cnt >= 1000){
-					menu = automatic;
-					mode = automatic;
+				if(cnt >= 500){
+					xEventGroupClearBits(xEventGroup,manual);
+					xEventGroupSetBits(xEventGroup,automatic);
 				}
 				cnt=0;
-			}*/
-			break;
-		case automatic:
+			}
+		}
+
+		//automatic
+		if((bits & automatic) != 0){
 			if(sw1->read() && string > 0){
+				while(sw1->read()){
+					vTaskDelay(1);
+				}
+				mutex->lock();
 				string--;
+				mutex->unlock();
+			}
+			if(sw3->read()){
+				while(sw3->read() && cnt <= 500){
+					vTaskDelay(1);
+					cnt++;
+				}
+				if(cnt >= 500){
+					xEventGroupClearBits(xEventGroup,automatic);
+					xEventGroupSetBits(xEventGroup,manual);
+				}
+				cnt=0;
 			}
 			if(sw2->read()){
 				while(sw2->read()){
 					vTaskDelay(1);
-					cnt++;
 				}
-				if(cnt >= 1000){
-					menu = manual;
-					mode = manual;
-				}
-				cnt=0;
+				xEventGroupClearBits(xEventGroup,automatic);
+				xEventGroupSetBits(xEventGroup,tuning);
 			}
-			if(sw3->read()){
-				menu = tuning;
-			}
-			if(sw4->read() && string < 6){
+			if(sw4->read() && string < 5){
+				mutex->lock();
 				string++;
+				mutex->unlock();
+				while(sw4->read()){
+					vTaskDelay(1);
+				}
 			}
-			break;
+		}
 
-			/*case automatic_string:
+
+		/*case automatic_string:
 			if(sw1->read()){
 				desired_frequency=desired_frequency-0.1;
 			}
@@ -239,26 +300,60 @@ static void vMotor(void *param) {
 			}
 			break;*/
 
-		case tuning:
+		//tuning
+		if((bits & tuning) != 0){
 			if(sw1->read() && i > 0){
+				while(sw1->read()){
+					vTaskDelay(1);
+				}
+				mutex->lock();
 				i--;
+				mutex->unlock();
 			}
 			if(sw2->read()){
-				menu = mode;
+				while(sw2->read()){
+					vTaskDelay(1);
+				}
+				temp_bits=xEventGroupGetBits(xEventGroup);
+				xEventGroupClearBits(xEventGroup,tuning);
+
+				if((temp_bits & temp_manual) != 0){
+					xEventGroupClearBits(xEventGroup,temp_manual);
+					xEventGroupSetBits(xEventGroup,manual);
+				}
+				else {
+					xEventGroupSetBits(xEventGroup,automatic);
+				}
 			}
 			if(sw3->read()){
-				menu = mode;
+				while(sw3->read()){
+					vTaskDelay(1);
+				}
+				xEventGroupClearBits(xEventGroup,tuning);
+
+				if((temp_bits & temp_manual) != 0){
+					xEventGroupClearBits(xEventGroup,temp_manual);
+					xEventGroupSetBits(xEventGroup,manual);
+				}
+				else {
+					xEventGroupSetBits(xEventGroup,automatic);
+				}
 				desired_tuning = pre_tunings[i];
 			}
-			/*
-			 * if(sw4->read() && i<?){
-				i++;
-			}
-			 */
-			break;
 
+			if(sw4->read() && i<pre_tuning_total-1){
+				while(sw4->read()){
+					vTaskDelay(1);
+				}
+				mutex->lock();
+				i++;
+				mutex->unlock();
+			}
 
 		}
+
+
+
 		vTaskDelay(10);
 	}
 }
@@ -270,11 +365,11 @@ float parse(std::string sent, char const *parser){
 
 	found = sent.find(parser);
 	c = sent[(found+2)];
-	int i=1;
-	while (c!= '|' && i <6){
+	int k=1;
+	while (c!= '|' && k <6){
 		tmp.append(1,c);
-		c = sent[found+2+i];
-		i++;
+		c = sent[found+2+k];
+		k++;
 	}
 	return std::stof(tmp);
 }
@@ -284,28 +379,31 @@ static void receive_task(void *pvParameters) {
 
 	int cnt=0;
 	char str[80];
-	uint i;
-	uint32_t len;
+	int a;
+	int32_t len;
 	vTaskDelay(10);
 
 	while(1){
 		len = USB_receive((uint8_t *)str, 79);
 
-		for(i=0;i<len;i++){
-			if(str[i] != '!' && cnt <=47){
-				sentence = sentence + str[i];
+		for(a=0;a<len;a++){
+			if(str[a] != '!' && cnt <=47){
+				sentence = sentence + str[a];
 				cnt++;
 			}
 			else
-			{
+			{						// check values and correctness of the sentence
 				cnt=0;
+				mutex->lock();
+				//get name of the string tune and parse it
+				pre_tunings[0].strings[0]=parse(sentence,"E=");
+				pre_tunings[0].strings[1]=parse(sentence,"a=");
+				pre_tunings[0].strings[2]=parse(sentence,"d=");
+				pre_tunings[0].strings[3]=parse(sentence,"g=");
+				pre_tunings[0].strings[4]=parse(sentence,"b=");
+				pre_tunings[0].strings[5]=parse(sentence,"e=");
 
-				desired_tuning.strings[0]=parse(sentence,"E=");		// check values
-				desired_tuning.strings[1]=parse(sentence,"a=");
-				desired_tuning.strings[2]=parse(sentence,"d=");
-				desired_tuning.strings[3]=parse(sentence,"g=");
-				desired_tuning.strings[4]=parse(sentence,"b=");
-				desired_tuning.strings[5]=parse(sentence,"e=");
+				mutex->unlock();
 			}
 
 
@@ -336,12 +434,10 @@ int main(void) {
 	Chip_SWM_MovablePortPinAssign(SWM_SCT0_OUT0_O,0,12);
 	SCT_Init();
 
-	out = new DigitalIoPin(0, 29, false, true, true);
-
 	sw1 = new DigitalIoPin(0, 9, true, true, true);
-	//sw2 = new DigitalIoPin(1, 9, true, true, true);
-	//sw3 = new DigitalIoPin(1, 9, true, true, true);
-	sw4 = new DigitalIoPin(0, 10, true, true, true);
+	sw2 = new DigitalIoPin(0, 10, true, true, true);
+	sw3 = new DigitalIoPin(1, 3, true, true, true);
+	sw4 = new DigitalIoPin(0, 29, true, true, true);
 
 	tighten = new DigitalIoPin(1, 10, false, true, true);
 	loosen = new DigitalIoPin(1, 9, false, true, true);
@@ -351,7 +447,6 @@ int main(void) {
 	tighten->write(false);
 
 	rs = new DigitalIoPin(0, 8, false, true, false);
-	rs->write(true);
 	en = new DigitalIoPin(1, 6, false, true, false);
 	d4 = new DigitalIoPin(1, 8, false, true, false);
 	d5 = new DigitalIoPin(0, 5, false, true, false);
@@ -359,6 +454,7 @@ int main(void) {
 	d7 = new DigitalIoPin(0, 7, false, true, false);
 	lcd = new LiquidCrystal(rs, en, d4, d5, d6, d7);
 
+	lcd->begin(18,2);
 	/*LPC_INMUX->PINTSEL[0] = 17;
 	LPC_INMUX->PINTSEL[1] = 43;
 
@@ -373,6 +469,11 @@ int main(void) {
 
 	xSemaphore = xSemaphoreCreateBinary();
 
+	xEventGroup = xEventGroupCreate();
+
+	xEventGroupSetBits(xEventGroup,manual);
+
+	mutex = new Fmutex();
 
 	xTaskCreate(vDisplay, "vDisp",
 			configMINIMAL_STACK_SIZE *3 , NULL, (tskIDLE_PRIORITY + 1UL),

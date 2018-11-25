@@ -155,18 +155,29 @@ void LiquidCrystal::home() {
 
 void LiquidCrystal::print(std::string const &s) {
 	setCursor(0,0);
-	for (int i = 0; i < s.size(); i++) {
+	int i,a;
+	for (i = 0; i < s.size() && i<40; i++) {
 		if(s[i] == '!'){
+			for(a=i;a<19;a++){
+				write(' ');
+			}
 			setCursor(0,1);
 		}
 		else{
 			write(s[i]);
 		}
 	}
+	if (s.size()<40){
+		int left_over = 40-s.size();
+		for (i=0;i<left_over;i++){
+			write(' ');
+		}
+	}
 }
 
 void LiquidCrystal::setCursor(uint8_t col, uint8_t row) {
-	int row_offsets[] = { 0x00, 0x40, 0x14, 0x54 };
+	//int row_offsets[] = { 0x00, 0x40, 0x14, 0x54 };
+	int row_offsets[] = { 0x00, 0x50, 0x10, 0x60 };
 	if (row >= _numlines) {
 		row = _numlines - 1;    // we count rows starting w/0
 	}

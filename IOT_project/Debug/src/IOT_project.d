@@ -64,7 +64,7 @@ src/IOT_project.o src/IOT_project.d: ../src/IOT_project.cpp \
  C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/event_groups.h \
  C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/timers.h \
  C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/task.h \
- ../src/Fmutex.h
+ ../src/Fmutex.h ../src/notes.h
 
 C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_board_nxp_lpcxpresso_1549\inc/board.h:
 
@@ -201,3 +201,5 @@ C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/
 C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/task.h:
 
 ../src/Fmutex.h:
+
+../src/notes.h:

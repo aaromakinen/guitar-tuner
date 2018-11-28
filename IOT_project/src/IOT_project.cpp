@@ -27,6 +27,8 @@
 #include "user_vcom.h"
 #include "event_groups.h"
 #include "Fmutex.h"
+#include "notes.h"
+#include <algorithm>
 
 #define manual	( 1 << 0 )
 #define automatic	( 1 << 1 )
@@ -39,9 +41,9 @@ EventGroupHandle_t xEventGroup;
 DigitalIoPin *out, *sw1, *sw2, *sw3, *sw4, *tighten, *loosen, *rs, *en, *d4, *d5, *d6, *d7;
 LiquidCrystal *lcd;
 
-int string,i=0;
+int string,viewed_tuning=0;
 
-float detected_frequency = 0.0;
+float detected_frequency = 155.6;
 // TODO: insert other include files here
 struct tunes{
 	std::string names[6];
@@ -50,8 +52,8 @@ struct tunes{
 
 tunes pre_tunings[3] = {
 		{"","","","","","",82.4,110.0,146.83,196.0,246.9,329.6},
-		{"E4"," a2"," d3"," g3"," b3"," e2",82.4,110.0,146.83,196.0,246.9,329.6},
-		{"","","","","","       testi",123.4,342.0,65.8,34.0,234.9,123.5}
+		{"E2","A2","D3","G3","B3","E4",82.4,110.0,146.83,196.0,246.9,329.6},
+		{"D2","A2","D3","G3","B3","E4",73.4,110.0,146.83,196.0,246.9,329.6}
 };
 tunes desired_tuning = pre_tunings[1];
 enum strings{
@@ -93,7 +95,7 @@ void SCT_Init(void)
 static void vDisplay(void *param) {
 	char buffer[41];
 	std::string manual_str = "     MANUAL MODE!B1=loosen B4=tighten";
-	const std::string automatic_str = "AUTO    E a d g b e!";
+	const std::string automatic_str = "AUTO  6 5 4 3 2 1!";
 	std::string temp;
 	std::string half_names;
 	int counter = 0;
@@ -106,25 +108,27 @@ static void vDisplay(void *param) {
 		}
 
 		else if((bits & automatic) != 0){
-			sprintf(buffer,"%.1f -> %.1f %s",detected_frequency,desired_tuning.strings[string],desired_tuning.names[string].c_str());
+			char* note = getNote(detected_frequency);
+			sprintf(buffer,"%s %.1f->%.1f %s",note,detected_frequency,desired_tuning.strings[string],desired_tuning.names[string].c_str());
 			temp = automatic_str + buffer;
-			if(counter%2==0){
-				temp[(string*2)+8] = ' ';
+			if(counter%2==0 && counter %4!=0){
+
+				temp[(string*2)+6] = ' ';
 			}
 			lcd->print(temp);
 			counter++;
 		}
 
 		else if((bits & tuning) != 0){
-			if(i==0){
+			if(viewed_tuning==0){
 				temp = "     CUSTOM!B2=cancel B3=select";
 				lcd->print(temp);
 			}
 			else{
-			sprintf(buffer,"%s%s%s%s%s%s!B2=cancel B3=select",pre_tunings[i].names[0].c_str(),pre_tunings[i].names[1].c_str(),pre_tunings[i].names[2].c_str(),
-					pre_tunings[i].names[3].c_str(),pre_tunings[i].names[4].c_str(),pre_tunings[i].names[5].c_str());
-			temp=buffer;
-			lcd->print(temp);
+				sprintf(buffer,"%s %s %s %s %s %s!B2=cancel B3=select",pre_tunings[viewed_tuning].names[0].c_str(),pre_tunings[viewed_tuning].names[1].c_str(),pre_tunings[viewed_tuning].names[2].c_str(),
+						pre_tunings[viewed_tuning].names[3].c_str(),pre_tunings[viewed_tuning].names[4].c_str(),pre_tunings[viewed_tuning].names[5].c_str());
+				temp=buffer;
+				lcd->print(temp);
 			}
 		}
 
@@ -152,7 +156,7 @@ static void vPID(void *param) {
 	double Dout;
 
 	// Calculate total output
-	double output;
+	float output;
 	while(1){
 
 		if((xEventGroupGetBits(xEventGroup) & automatic) != 0){
@@ -208,7 +212,7 @@ static void vFrequency(void *param) {
 }
 static void vMotor(void *param) {
 	int cnt=0;
-	int pre_tuning_total = 3;					//add custom
+	int pre_tuning_total = 3;
 	EventBits_t bits;
 	EventBits_t temp_bits;
 	while(1){
@@ -302,12 +306,12 @@ static void vMotor(void *param) {
 
 		//tuning
 		if((bits & tuning) != 0){
-			if(sw1->read() && i > 0){
+			if(sw1->read() && viewed_tuning > 0){
 				while(sw1->read()){
 					vTaskDelay(1);
 				}
 				mutex->lock();
-				i--;
+				viewed_tuning--;
 				mutex->unlock();
 			}
 			if(sw2->read()){
@@ -338,15 +342,15 @@ static void vMotor(void *param) {
 				else {
 					xEventGroupSetBits(xEventGroup,automatic);
 				}
-				desired_tuning = pre_tunings[i];
+				desired_tuning = pre_tunings[viewed_tuning];
 			}
 
-			if(sw4->read() && i<pre_tuning_total-1){
+			if(sw4->read() && viewed_tuning<pre_tuning_total-1){
 				while(sw4->read()){
 					vTaskDelay(1);
 				}
 				mutex->lock();
-				i++;
+				viewed_tuning++;
 				mutex->unlock();
 			}
 
@@ -358,21 +362,33 @@ static void vMotor(void *param) {
 	}
 }
 
-float parse(std::string sent, char const *parser){
-	std::string tmp;
-	char c;
-	std::size_t found;
+tunes* parse(std::string sent){
+	std::string temp;
+	int count=0;
+	tunes *received_notes = new tunes;
+	int e;
+	for(e=0;e<sent.length();e++){
+		if(sent[e] == '='){
+			e++;
+			while(sent[e]!='|' && temp.length() != 3){
+				temp.push_back(sent[e]);
+				e++;
+			}
+			if(lookupNote(temp.c_str()) != -1){
+				received_notes->names[count]=temp;
+				received_notes->strings[count]=lookupNote(temp.c_str());
+				count++;
+			}
+			else {
+				received_notes->strings[0]=-1.0;
+			}
+			temp="";
 
-	found = sent.find(parser);
-	c = sent[(found+2)];
-	int k=1;
-	while (c!= '|' && k <6){
-		tmp.append(1,c);
-		c = sent[found+2+k];
-		k++;
+		}
 	}
-	return std::stof(tmp);
+	return received_notes;
 }
+
 
 static void receive_task(void *pvParameters) {
 	std::string sentence;
@@ -392,24 +408,25 @@ static void receive_task(void *pvParameters) {
 				cnt++;
 			}
 			else
-			{						// check values and correctness of the sentence
+			{
 				cnt=0;
-				mutex->lock();
-				//get name of the string tune and parse it
-				pre_tunings[0].strings[0]=parse(sentence,"E=");
-				pre_tunings[0].strings[1]=parse(sentence,"a=");
-				pre_tunings[0].strings[2]=parse(sentence,"d=");
-				pre_tunings[0].strings[3]=parse(sentence,"g=");
-				pre_tunings[0].strings[4]=parse(sentence,"b=");
-				pre_tunings[0].strings[5]=parse(sentence,"e=");
 
-				mutex->unlock();
+
+				tunes *freqs =  parse(sentence);
+				if(freqs->strings[0] != -1){
+					mutex->lock();
+					memcpy(pre_tunings,freqs, sizeof (*freqs));
+					mutex->unlock();
+				}
+				delete freqs;
+				sentence = "";
 			}
 
 
 		}
+		vTaskDelay(1);
 	}
-	vTaskDelay(1);
+
 }
 
 

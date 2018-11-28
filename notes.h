@@ -77,7 +77,7 @@ double lookupNote(char* name) { // Get reference frequency from note name
 	int i = 0;
 
 	while (notestruct[i].lolim < 1000.0) {
-		if (sameName(name, notestruct[i].name, 2) == 0) { // Only compare two chars, because first two are unique.
+		if (sameName(name, notestruct[i].name, 3) == 0) { // Compare three chars
 			return notestruct[i].rval;
 		}
 
@@ -91,7 +91,7 @@ int sameName(char* n1, char* n2, int len) {
 	int i = 0;
 	int r = 0;
 
-	while (i <= len) {
+	while (i <= (len - 1)) { // Compare chars from index 0 to index len-1
 		if (n1[i] != n2[i]) {
 			r = 1;
 		}

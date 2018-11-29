@@ -47,7 +47,7 @@ src/LiquidCrystal.o src/LiquidCrystal.d: ../src/LiquidCrystal.cpp \
  C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc/i2cm_15xx.h \
  C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc/i2c_common_15xx.h \
  C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc/i2cs_15xx.h \
- ../src/DigitalIoPin.h
+ ../src/DigitalIoPin.h ../src/RIT.h
 
 ../src/LiquidCrystal.h:
 
@@ -146,3 +146,5 @@ C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc/i2c
 C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc/i2cs_15xx.h:
 
 ../src/DigitalIoPin.h:
+
+../src/RIT.h:

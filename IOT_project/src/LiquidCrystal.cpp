@@ -3,12 +3,14 @@
 #include <cstring>
 #include "chip.h"
 #include <string>
-
+#include "RIT.h"
 
 #define LOW 0
 #define HIGH 1
-
-void delayMicroseconds(unsigned int us) {
+void delayMicroseconds(int us){
+	RIT_start(1,us);
+}
+/*void delayMicroseconds(unsigned int us) {
 	// calculate compare value
 
 	uint64_t sysTickRate = Chip_Clock_GetSysTickClockRate();
@@ -33,7 +35,7 @@ void delayMicroseconds(unsigned int us) {
 	// clear RIT Int flag
 	Chip_RIT_ClearIntStatus(LPC_RITIMER);
 }
-
+*/
 // When the display powers up, it is configured as follows:
 //
 // 1. Display clear
@@ -84,7 +86,7 @@ void LiquidCrystal::begin(uint8_t cols, uint8_t lines, uint8_t dotsize) {
 	// SEE PAGE 45/46 FOR INITIALIZATION SPECIFICATION!
 	// according to datasheet, we need at least 40ms after power rises above 2.7V
 	// before sending commands. Arduino can turn on way befer 4.5V so we'll wait 50
-	delayMicroseconds(50000);
+	(50000);
 	// Now we pull both RS and R/W low to begin commands
 	rs_pin->write(false); //digitalWrite(_rs_pin, LOW);
 	enable_pin->write(false); //digitalWrite(_enable_pin, LOW);
@@ -283,6 +285,7 @@ void LiquidCrystal::pulseEnable(void) {
 	delayMicroseconds(1);
 	enable_pin->write(true); //digitalWrite(_enable_pin, HIGH);
 	delayMicroseconds(1);    // enable pulse must be >450ns
+
 	enable_pin->write(false); //digitalWrite(_enable_pin, LOW);
 	delayMicroseconds(100);   // commands need > 37us to settle
 }

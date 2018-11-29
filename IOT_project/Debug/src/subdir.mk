@@ -8,11 +8,14 @@ CPP_SRCS += \
 ../src/Fmutex.cpp \
 ../src/IOT_project.cpp \
 ../src/LiquidCrystal.cpp \
+../src/RIT.cpp \
+../src/SPI_ADC.cpp \
 ../src/cr_cpp_config.cpp \
 ../src/cr_startup_lpc15xx.cpp 
 
 C_SRCS += \
 ../src/ITM_write.c \
+../src/Yin.c \
 ../src/cdc_desc.c \
 ../src/cdc_main.c \
 ../src/cdc_vcom.c \
@@ -25,6 +28,9 @@ OBJS += \
 ./src/IOT_project.o \
 ./src/ITM_write.o \
 ./src/LiquidCrystal.o \
+./src/RIT.o \
+./src/SPI_ADC.o \
+./src/Yin.o \
 ./src/cdc_desc.o \
 ./src/cdc_main.o \
 ./src/cdc_vcom.o \
@@ -38,11 +44,14 @@ CPP_DEPS += \
 ./src/Fmutex.d \
 ./src/IOT_project.d \
 ./src/LiquidCrystal.d \
+./src/RIT.d \
+./src/SPI_ADC.d \
 ./src/cr_cpp_config.d \
 ./src/cr_startup_lpc15xx.d 
 
 C_DEPS += \
 ./src/ITM_write.d \
+./src/Yin.d \
 ./src/cdc_desc.d \
 ./src/cdc_main.d \
 ./src/cdc_vcom.d \

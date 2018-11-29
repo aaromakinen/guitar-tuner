@@ -1,6 +1,6 @@
 #include "string.h"
 char* getNote(float freq);
-double lookupNote(char* name);
+double lookupNote(const char* name);
 int sameName(const char* n1, char* n2, int len);
 
 struct Notes {
@@ -10,6 +10,7 @@ struct Notes {
 };
 
 static struct Notes notestruct[] = {
+	{ "? ", -1.0, 0.0},
 	{ "? ", 0.0, 0.0},
 	{ "C1", 31.785, 32.7 },
 	{ "C#1", 33.675, 34.65 },
@@ -77,7 +78,7 @@ double lookupNote(const char* name) { // Get reference frequency from note name
 	int i = 0;
 
 	while (notestruct[i].lolim < 1000.0) {
-		if (sameName(name, notestruct[i].name, 2) == 0) { // Only compare two chars, because first two are unique.
+		if (sameName(name, notestruct[i].name, 3) == 0) { // Only compare two chars, because first two are unique.
 			return notestruct[i].rval;
 		}
 
@@ -91,7 +92,7 @@ int sameName(const char* n1, char* n2, int len) {
 	int i = 0;
 	int r = 0;
 
-	while (i <= len) {
+	while (i <= (len -1)) {
 		if (n1[i] != n2[i]) {
 			r = 1;
 		}

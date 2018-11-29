@@ -29,6 +29,13 @@
 #include "Fmutex.h"
 #include "notes.h"
 #include <algorithm>
+#include "SPI_ADC.h"
+#include "RIT.h"
+#include <atomic>
+
+extern "C" {
+#include "Yin.h"
+}
 
 #define manual	( 1 << 0 )
 #define automatic	( 1 << 1 )
@@ -41,9 +48,12 @@ EventGroupHandle_t xEventGroup;
 DigitalIoPin *out, *sw1, *sw2, *sw3, *sw4, *tighten, *loosen, *rs, *en, *d4, *d5, *d6, *d7;
 LiquidCrystal *lcd;
 
-int string,viewed_tuning=0;
+std::atomic<int> string{0};
+std::atomic<int> viewed_tuning {0};
 
-float detected_frequency = 155.6;
+
+
+float detected_frequency = 0;
 // TODO: insert other include files here
 struct tunes{
 	std::string names[6];
@@ -76,6 +86,42 @@ void PIN_INT1_IRQHandler(void){
 }
 }
  */
+
+
+
+
+
+SPI_ADC* myspiv2;
+
+static int16_t ar[NUM_SAMPLES];
+int ar_index = 0;
+bool semBool = 0;
+volatile uint32_t RIT_count;
+
+extern "C"{
+void RIT_IRQHandler(void) {
+
+	myspiv2->InitiateConversion();
+
+	if (--RIT_count == 0) {
+		Chip_RIT_Disable(LPC_RITIMER); // disable timer
+		semBool = 1;
+	}
+
+	Chip_RIT_ClearIntStatus(LPC_RITIMER); // clear IRQ flag
+
+}
+
+void SPI0_IRQHandler(void) {
+	uint16_t adc_sample = myspiv2->ReadSample();
+	//ar[ar_index] = adc_sample - 1638;
+	ar[ar_index] = adc_sample - 2048;
+	//ar[ar_index] = adc_sample;
+	ar_index++;
+}
+}
+
+
 void SCT_Init(void)
 {
 	LPC_SCT0->CONFIG = SCT_CONFIG_16BIT_COUNTER | SCT_CONFIG_AUTOLIMIT_L; // two 16-bit timers, auto limit
@@ -108,8 +154,10 @@ static void vDisplay(void *param) {
 		}
 
 		else if((bits & automatic) != 0){
+			mutex->lock();
 			char* note = getNote(detected_frequency);
 			sprintf(buffer,"%s %.1f->%.1f %s",note,detected_frequency,desired_tuning.strings[string],desired_tuning.names[string].c_str());
+			mutex->unlock();
 			temp = automatic_str + buffer;
 			if(counter%2==0 && counter %4!=0){
 
@@ -125,8 +173,10 @@ static void vDisplay(void *param) {
 				lcd->print(temp);
 			}
 			else{
+				mutex->lock();
 				sprintf(buffer,"%s %s %s %s %s %s!B2=cancel B3=select",pre_tunings[viewed_tuning].names[0].c_str(),pre_tunings[viewed_tuning].names[1].c_str(),pre_tunings[viewed_tuning].names[2].c_str(),
 						pre_tunings[viewed_tuning].names[3].c_str(),pre_tunings[viewed_tuning].names[4].c_str(),pre_tunings[viewed_tuning].names[5].c_str());
+				mutex->unlock();
 				temp=buffer;
 				lcd->print(temp);
 			}
@@ -141,7 +191,7 @@ static void vPID(void *param) {
 
 	// Proportional term
 	double Pout;
-	double _Kp;
+	double _Kp =2;
 
 	// Integral term
 	double _integral;
@@ -160,10 +210,12 @@ static void vPID(void *param) {
 	while(1){
 
 		if((xEventGroupGetBits(xEventGroup) & automatic) != 0){
+			mutex->lock();
 			error = desired_tuning.strings[string] - detected_frequency;
+			mutex->unlock();
 			Pout = _Kp * error;
 
-			_integral += error;
+			/*_integral += error;
 			Iout = _Ki * _integral;
 
 			derivative = (error - _pre_error);
@@ -180,14 +232,12 @@ static void vPID(void *param) {
 
 			/*tighten->write(false);
 			loosen->write(true);
-			vTaskDelay(10);
 			tighten->write(false);		//test program
 			loosen->write(false);
-			vTaskDelay(1000);
-			 */
 
+*/
 
-			/*if (output<0){
+			if (output<0){
 				tighten->write(false);
 				loosen->write(true);
 
@@ -196,20 +246,31 @@ static void vPID(void *param) {
 				tighten->write(true);
 				loosen->write(false);
 			}
-			 */
-			//vTaskDelay(output*?);
 		}
 		vTaskDelay(100);
 	}
 }
 static void vFrequency(void *param) {
+	myspiv2 = new SPI_ADC();
+	//	char* notename; // Name of note closest to detected pitch
+	//	float refval; // Reference frequency of note closest to detected pitch
+	//	float diff;  // How flat (positive diff) or sharp (negative diff) the signal is
+	Yin yin;
+	Yin_init(&yin, NUM_SAMPLES, YIN_DEFAULT_THRESHOLD); // 95% accuracy setting with NUM_SAMPLES samples
+	float temporary;
 	while(1){
-		//calculations and shit
-		/*detected_frequency = ?;		//use mutex when writing the freq
-		vTaskDelay(?);*/
+		//use mutex when writing the freq
+		RIT_start(NUM_SAMPLES, 50);
+		temporary= Yin_getPitch(&yin, ar);
+		if(temporary != -1.0){
+			mutex->lock();
+			detected_frequency =temporary;
+			mutex->unlock();
+		}
 		vTaskDelay(10);
 	}
 }
+
 static void vMotor(void *param) {
 	int cnt=0;
 	int pre_tuning_total = 3;
@@ -262,9 +323,7 @@ static void vMotor(void *param) {
 				while(sw1->read()){
 					vTaskDelay(1);
 				}
-				mutex->lock();
 				string--;
-				mutex->unlock();
 			}
 			if(sw3->read()){
 				while(sw3->read() && cnt <= 500){
@@ -285,24 +344,12 @@ static void vMotor(void *param) {
 				xEventGroupSetBits(xEventGroup,tuning);
 			}
 			if(sw4->read() && string < 5){
-				mutex->lock();
 				string++;
-				mutex->unlock();
 				while(sw4->read()){
 					vTaskDelay(1);
 				}
 			}
 		}
-
-
-		/*case automatic_string:
-			if(sw1->read()){
-				desired_frequency=desired_frequency-0.1;
-			}
-			if(sw4->read()){
-				desired_frequency=desired_frequency+0.1;
-			}
-			break;*/
 
 		//tuning
 		if((bits & tuning) != 0){
@@ -310,9 +357,7 @@ static void vMotor(void *param) {
 				while(sw1->read()){
 					vTaskDelay(1);
 				}
-				mutex->lock();
 				viewed_tuning--;
-				mutex->unlock();
 			}
 			if(sw2->read()){
 				while(sw2->read()){
@@ -342,16 +387,16 @@ static void vMotor(void *param) {
 				else {
 					xEventGroupSetBits(xEventGroup,automatic);
 				}
+				mutex->lock();
 				desired_tuning = pre_tunings[viewed_tuning];
+				mutex->unlock();
 			}
 
 			if(sw4->read() && viewed_tuning<pre_tuning_total-1){
 				while(sw4->read()){
 					vTaskDelay(1);
 				}
-				mutex->lock();
 				viewed_tuning++;
-				mutex->unlock();
 			}
 
 		}
@@ -451,10 +496,10 @@ int main(void) {
 	Chip_SWM_MovablePortPinAssign(SWM_SCT0_OUT0_O,0,12);
 	SCT_Init();
 
-	sw1 = new DigitalIoPin(0, 9, true, true, true);
-	sw2 = new DigitalIoPin(0, 10, true, true, true);
-	sw3 = new DigitalIoPin(1, 3, true, true, true);
-	sw4 = new DigitalIoPin(0, 29, true, true, true);
+	sw1 = new DigitalIoPin(0, 28, true, true, true);
+	sw2 = new DigitalIoPin(0, 27, true, true, true);
+	sw3 = new DigitalIoPin(1, 0, true, true, true);
+	sw4 = new DigitalIoPin(0, 24, true, true, true);
 
 	tighten = new DigitalIoPin(1, 10, false, true, true);
 	loosen = new DigitalIoPin(1, 9, false, true, true);
@@ -483,6 +528,8 @@ int main(void) {
 
 	NVIC_EnableIRQ(PIN_INT0_IRQn);
 	NVIC_EnableIRQ(PIN_INT1_IRQn);*/
+	Chip_RIT_Init(LPC_RITIMER);				// initialize RIT (= enable clocking etc.)
+	NVIC_SetPriority( RITIMER_IRQn, 5 );	// set the priority level of the interrupt
 
 	xSemaphore = xSemaphoreCreateBinary();
 

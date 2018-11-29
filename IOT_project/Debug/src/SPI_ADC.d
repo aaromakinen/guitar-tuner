@@ -1,4 +1,4 @@
-src/IOT_project.o src/IOT_project.d: ../src/IOT_project.cpp \
+src/SPI_ADC.o src/SPI_ADC.d: ../src/SPI_ADC.cpp ../src/SPI_ADC.h \
  C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_board_nxp_lpcxpresso_1549\inc/board.h \
  C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc/chip.h \
  C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc/lpc_types.h \
@@ -48,24 +48,9 @@ src/IOT_project.o src/IOT_project.d: ../src/IOT_project.cpp \
  C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc/i2c_common_15xx.h \
  C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc/i2cs_15xx.h \
  C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_board_nxp_lpcxpresso_1549\inc/board_api.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc/lpc_types.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/FreeRTOS.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\inc/FreeRTOSConfig.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/projdefs.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/portable.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/deprecated_definitions.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\portable\GCC\ARM_CM3/portmacro.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/mpu_wrappers.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/task.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/list.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/semphr.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/queue.h \
- ../src/DigitalIoPin.h ../src/LiquidCrystal.h ../src/user_vcom.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/event_groups.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/timers.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/task.h \
- ../src/Fmutex.h ../src/notes.h ../src/SPI_ADC.h ../src/RIT.h \
- ../src/Yin.h
+ C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc/lpc_types.h
+
+../src/SPI_ADC.h:
 
 C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_board_nxp_lpcxpresso_1549\inc/board.h:
 
@@ -166,47 +151,3 @@ C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc/i2c
 C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_board_nxp_lpcxpresso_1549\inc/board_api.h:
 
 C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc/lpc_types.h:
-
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/FreeRTOS.h:
-
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\inc/FreeRTOSConfig.h:
-
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/projdefs.h:
-
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/portable.h:
-
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/deprecated_definitions.h:
-
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\portable\GCC\ARM_CM3/portmacro.h:
-
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/mpu_wrappers.h:
-
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/task.h:
-
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/list.h:
-
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/semphr.h:
-
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/queue.h:
-
-../src/DigitalIoPin.h:
-
-../src/LiquidCrystal.h:
-
-../src/user_vcom.h:
-
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/event_groups.h:
-
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/timers.h:
-
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/task.h:
-
-../src/Fmutex.h:
-
-../src/notes.h:
-
-../src/SPI_ADC.h:
-
-../src/RIT.h:
-
-../src/Yin.h:

@@ -5,7 +5,7 @@
  * Generated linker script file for LPC1549
  * Created from linkscript.ldt by FMCreateLinkLibraries
  * Using Freemarker v2.3.23
- * MCUXpresso IDE v10.2.1 [Build 795] [2018-07-25]  on 29.11.2018 14:48:34
+ * MCUXpresso IDE v10.1.1 [Build 606] [2018-01-02] on Dec 3, 2018 4:17:05 PM
  */
 
 INCLUDE "IOT_project_Debug_library.ld"
@@ -43,13 +43,15 @@ SECTIONS
 
         *(.after_vectors*)
 
-    } > MFlash256
+
+
+    } >MFlash256
 
     .text : ALIGN(4)
     {
-       *(.text*)
-       *(.rodata .rodata.* .constdata .constdata.*)
-       . = ALIGN(4);
+        *(.text*)
+        *(.rodata .rodata.* .constdata .constdata.*)
+        . = ALIGN(4);
             /* C++ constructors etc */
             . = ALIGN(4);
             KEEP(*(.init))
@@ -89,7 +91,6 @@ SECTIONS
     {
         *(.ARM.extab* .gnu.linkonce.armextab.*)
     } > MFlash256
-
     __exidx_start = .;
 
     .ARM.exidx : ALIGN(4)
@@ -101,7 +102,6 @@ SECTIONS
     _etext = .;
         
     /* DATA section for Ram2_4 */
-
     .data_RAM2 : ALIGN(4)
     {
         FILL(0xff)
@@ -113,6 +113,7 @@ SECTIONS
         . = ALIGN(4) ;
         PROVIDE(__end_data_RAM2 = .) ;
      } > Ram2_4 AT>MFlash256
+
     /* MAIN DATA SECTION */
     .uninit_RESERVED : ALIGN(4)
     {
@@ -120,7 +121,6 @@ SECTIONS
         . = ALIGN(4) ;
         _end_uninit_RESERVED = .;
     } > Ram0_16_32
-
     /* Main DATA section (Ram0_16_32) */
     .data : ALIGN(4)
     {
@@ -132,7 +132,6 @@ SECTIONS
        . = ALIGN(4) ;
        _edata = . ;
     } > Ram0_16_32 AT>MFlash256
-
     /* BSS section for Ram2_4 */
     .bss_RAM2 : ALIGN(4)
     {
@@ -142,7 +141,6 @@ SECTIONS
        . = ALIGN (. != 0 ? 4 : 1) ; /* avoid empty segment */
        PROVIDE(__end_bss_RAM2 = .) ;
     } > Ram2_4 
-
     /* MAIN BSS SECTION */
     .bss : ALIGN(4)
     {
@@ -153,7 +151,6 @@ SECTIONS
         _ebss = .;
         PROVIDE(end = .);
     } > Ram0_16_32
-
     /* NOINIT section for Ram2_4 */
     .noinit_RAM2 (NOLOAD) : ALIGN(4)
     {
@@ -161,7 +158,6 @@ SECTIONS
        *(.noinit.$Ram2_4*)
        . = ALIGN(4) ;
     } > Ram2_4 
-
     /* DEFAULT NOINIT SECTION */
     .noinit (NOLOAD): ALIGN(4)
     {

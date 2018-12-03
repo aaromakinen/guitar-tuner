@@ -43,7 +43,8 @@ extern "C" {
 #define temp_manual	(1 << 3)
 
 Fmutex *mutex;
-SemaphoreHandle_t xSemaphore;
+Fmutex *ritmutex;
+SemaphoreHandle_t pidSem;
 EventGroupHandle_t xEventGroup;
 DigitalIoPin *out, *sw1, *sw2, *sw3, *sw4, *tighten, *loosen, *rs, *en, *d4, *d5, *d6, *d7;
 LiquidCrystal *lcd;
@@ -150,7 +151,9 @@ static void vDisplay(void *param) {
 		bits = xEventGroupGetBits(xEventGroup);
 
 		if((bits & manual) != 0){
+			ritmutex->lock();
 			lcd->print(manual_str);
+			ritmutex->unlock();
 		}
 
 		else if((bits & automatic) != 0){
@@ -163,14 +166,18 @@ static void vDisplay(void *param) {
 
 				temp[(string*2)+6] = ' ';
 			}
+			ritmutex->lock();
 			lcd->print(temp);
+			ritmutex->unlock();
 			counter++;
 		}
 
 		else if((bits & tuning) != 0){
 			if(viewed_tuning==0){
 				temp = "     CUSTOM!B2=cancel B3=select";
+				ritmutex->lock();
 				lcd->print(temp);
+				ritmutex->unlock();
 			}
 			else{
 				mutex->lock();
@@ -178,7 +185,9 @@ static void vDisplay(void *param) {
 						pre_tunings[viewed_tuning].names[3].c_str(),pre_tunings[viewed_tuning].names[4].c_str(),pre_tunings[viewed_tuning].names[5].c_str());
 				mutex->unlock();
 				temp=buffer;
+				ritmutex->lock();
 				lcd->print(temp);
+				ritmutex->unlock();
 			}
 		}
 
@@ -187,33 +196,42 @@ static void vDisplay(void *param) {
 	}
 }
 static void vPID(void *param) {
-	double error;
+	float error;
+	float abserror;
 
 	// Proportional term
-	double Pout;
-	double _Kp =2;
+	TickType_t tickVar = portMAX_DELAY;
+	float _Kp = 100.0;
 
 	// Integral term
-	double _integral;
-	double Iout;
-	double _Ki;
+	float _integral;
+	float Iout;
+	float _Ki;
 
 	// Derivative term
-	double derivative;
-	double _pre_error = 0;
-	double _Kd;
+	float derivative;
+	float _pre_error = 0;
+	float _Kd;
 
-	double Dout;
+	float Dout;
 
 	// Calculate total output
 	float output;
 	while(1){
+		if (xSemaphoreTake(pidSem, tickVar) == pdTRUE) {
 
 		if((xEventGroupGetBits(xEventGroup) & automatic) != 0){
 			mutex->lock();
 			error = desired_tuning.strings[string] - detected_frequency;
 			mutex->unlock();
-			Pout = _Kp * error;
+
+			if (error > 0) {
+				abserror = error;
+			} else {
+				abserror = error * -1;
+			}
+
+			tickVar = _Kp * abserror;
 
 			/*_integral += error;
 			Iout = _Ki * _integral;
@@ -236,36 +254,38 @@ static void vPID(void *param) {
 			loosen->write(false);
 
 */
-
-			if (output<0){
-				tighten->write(false);
-				loosen->write(true);
-
-			}
-			else{
-				tighten->write(true);
-				loosen->write(false);
+			if (error < 40) {
+				if (error<0){
+					tighten->write(false);
+					loosen->write(true);
+				}
+				else{
+					tighten->write(true);
+					loosen->write(false);
+				}
 			}
 		}
-		vTaskDelay(100);
+		} else {
+			tighten->write(false);
+			loosen->write(false);
+		}
 	}
 }
 static void vFrequency(void *param) {
 	myspiv2 = new SPI_ADC();
-	//	char* notename; // Name of note closest to detected pitch
-	//	float refval; // Reference frequency of note closest to detected pitch
-	//	float diff;  // How flat (positive diff) or sharp (negative diff) the signal is
 	Yin yin;
 	Yin_init(&yin, NUM_SAMPLES, YIN_DEFAULT_THRESHOLD); // 95% accuracy setting with NUM_SAMPLES samples
 	float temporary;
 	while(1){
-		//use mutex when writing the freq
+		ritmutex->lock();
 		RIT_start(NUM_SAMPLES, 50);
-		temporary= Yin_getPitch(&yin, ar);
+		ritmutex->unlock();
+		temporary = Yin_getPitch(&yin, ar);
 		if(temporary != -1.0){
 			mutex->lock();
-			detected_frequency =temporary;
+			detected_frequency = temporary;
 			mutex->unlock();
+			xSemaphoreGive(pidSem);
 		}
 		vTaskDelay(10);
 	}
@@ -531,13 +551,14 @@ int main(void) {
 	Chip_RIT_Init(LPC_RITIMER);				// initialize RIT (= enable clocking etc.)
 	NVIC_SetPriority( RITIMER_IRQn, 5 );	// set the priority level of the interrupt
 
-	xSemaphore = xSemaphoreCreateBinary();
+	pidSem = xSemaphoreCreateBinary();
 
 	xEventGroup = xEventGroupCreate();
 
 	xEventGroupSetBits(xEventGroup,manual);
 
 	mutex = new Fmutex();
+	ritmutex = new Fmutex();
 
 	xTaskCreate(vDisplay, "vDisp",
 			configMINIMAL_STACK_SIZE *3 , NULL, (tskIDLE_PRIORITY + 1UL),

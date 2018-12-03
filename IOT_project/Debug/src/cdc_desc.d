@@ -1,48 +1,48 @@
 src/cdc_desc.o src/cdc_desc.d: ../src/cdc_desc.c ../src/app_usbd_cfg.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc/lpc_types.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc/error.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_rom_api.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_hw.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_core.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\IOT_project\src/app_usbd_cfg.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_mscuser.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_msc.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_dfuuser.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_dfu.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_hiduser.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_hid.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_cdcuser.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_cdc.h
+ /Users/sam/Documents/MCUXpressoIDE_10.1.1/workspace/lpc_chip_15xx/inc/lpc_types.h \
+ /Users/sam/Documents/MCUXpressoIDE_10.1.1/workspace/lpc_chip_15xx/inc/error.h \
+ /Users/sam/Documents/MCUXpressoIDE_10.1.1/workspace/lpc_chip_15xx/inc/usbd/usbd_rom_api.h \
+ /Users/sam/Documents/MCUXpressoIDE_10.1.1/workspace/lpc_chip_15xx/inc/usbd/usbd.h \
+ /Users/sam/Documents/MCUXpressoIDE_10.1.1/workspace/lpc_chip_15xx/inc/usbd/usbd_hw.h \
+ /Users/sam/Documents/MCUXpressoIDE_10.1.1/workspace/lpc_chip_15xx/inc/usbd/usbd_core.h \
+ /Users/sam/Documents/Metropolia/Y3/Y3Q2/IoTProject/git/guitar-tuner/IOT_project/src/app_usbd_cfg.h \
+ /Users/sam/Documents/MCUXpressoIDE_10.1.1/workspace/lpc_chip_15xx/inc/usbd/usbd_mscuser.h \
+ /Users/sam/Documents/MCUXpressoIDE_10.1.1/workspace/lpc_chip_15xx/inc/usbd/usbd_msc.h \
+ /Users/sam/Documents/MCUXpressoIDE_10.1.1/workspace/lpc_chip_15xx/inc/usbd/usbd_dfuuser.h \
+ /Users/sam/Documents/MCUXpressoIDE_10.1.1/workspace/lpc_chip_15xx/inc/usbd/usbd_dfu.h \
+ /Users/sam/Documents/MCUXpressoIDE_10.1.1/workspace/lpc_chip_15xx/inc/usbd/usbd_hiduser.h \
+ /Users/sam/Documents/MCUXpressoIDE_10.1.1/workspace/lpc_chip_15xx/inc/usbd/usbd_hid.h \
+ /Users/sam/Documents/MCUXpressoIDE_10.1.1/workspace/lpc_chip_15xx/inc/usbd/usbd_cdcuser.h \
+ /Users/sam/Documents/MCUXpressoIDE_10.1.1/workspace/lpc_chip_15xx/inc/usbd/usbd_cdc.h
 
 ../src/app_usbd_cfg.h:
 
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc/lpc_types.h:
+/Users/sam/Documents/MCUXpressoIDE_10.1.1/workspace/lpc_chip_15xx/inc/lpc_types.h:
 
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc/error.h:
+/Users/sam/Documents/MCUXpressoIDE_10.1.1/workspace/lpc_chip_15xx/inc/error.h:
 
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_rom_api.h:
+/Users/sam/Documents/MCUXpressoIDE_10.1.1/workspace/lpc_chip_15xx/inc/usbd/usbd_rom_api.h:
 
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd.h:
+/Users/sam/Documents/MCUXpressoIDE_10.1.1/workspace/lpc_chip_15xx/inc/usbd/usbd.h:
 
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_hw.h:
+/Users/sam/Documents/MCUXpressoIDE_10.1.1/workspace/lpc_chip_15xx/inc/usbd/usbd_hw.h:
 
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_core.h:
+/Users/sam/Documents/MCUXpressoIDE_10.1.1/workspace/lpc_chip_15xx/inc/usbd/usbd_core.h:
 
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\IOT_project\src/app_usbd_cfg.h:
+/Users/sam/Documents/Metropolia/Y3/Y3Q2/IoTProject/git/guitar-tuner/IOT_project/src/app_usbd_cfg.h:
 
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_mscuser.h:
+/Users/sam/Documents/MCUXpressoIDE_10.1.1/workspace/lpc_chip_15xx/inc/usbd/usbd_mscuser.h:
 
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_msc.h:
+/Users/sam/Documents/MCUXpressoIDE_10.1.1/workspace/lpc_chip_15xx/inc/usbd/usbd_msc.h:
 
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_dfuuser.h:
+/Users/sam/Documents/MCUXpressoIDE_10.1.1/workspace/lpc_chip_15xx/inc/usbd/usbd_dfuuser.h:
 
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_dfu.h:
+/Users/sam/Documents/MCUXpressoIDE_10.1.1/workspace/lpc_chip_15xx/inc/usbd/usbd_dfu.h:
 
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_hiduser.h:
+/Users/sam/Documents/MCUXpressoIDE_10.1.1/workspace/lpc_chip_15xx/inc/usbd/usbd_hiduser.h:
 
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_hid.h:
+/Users/sam/Documents/MCUXpressoIDE_10.1.1/workspace/lpc_chip_15xx/inc/usbd/usbd_hid.h:
 
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_cdcuser.h:
+/Users/sam/Documents/MCUXpressoIDE_10.1.1/workspace/lpc_chip_15xx/inc/usbd/usbd_cdcuser.h:
 
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_cdc.h:
+/Users/sam/Documents/MCUXpressoIDE_10.1.1/workspace/lpc_chip_15xx/inc/usbd/usbd_cdc.h:

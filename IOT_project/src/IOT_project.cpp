@@ -198,73 +198,38 @@ static void vDisplay(void *param) {
 static void vPID(void *param) {
 	float error;
 	float abserror;
-
-	// Proportional term
+	float tolerance = 20.0;
 	TickType_t tickVar = portMAX_DELAY;
-	float _Kp = 100.0;
+	float _Kp = 100.0; // proportional constant
 
-	// Integral term
-	float _integral;
-	float Iout;
-	float _Ki;
-
-	// Derivative term
-	float derivative;
-	float _pre_error = 0;
-	float _Kd;
-
-	float Dout;
-
-	// Calculate total output
-	float output;
 	while(1){
+
 		if (xSemaphoreTake(pidSem, tickVar) == pdTRUE) {
 
-		if((xEventGroupGetBits(xEventGroup) & automatic) != 0){
-			mutex->lock();
-			error = desired_tuning.strings[string] - detected_frequency;
-			mutex->unlock();
+			if((xEventGroupGetBits(xEventGroup) & automatic) != 0){
+				mutex->lock();
+				error = desired_tuning.strings[string] - detected_frequency;
+				mutex->unlock();
 
-			if (error > 0) {
-				abserror = error;
-			} else {
-				abserror = error * -1;
-			}
-
-			tickVar = _Kp * abserror;
-
-			/*_integral += error;
-			Iout = _Ki * _integral;
-
-			derivative = (error - _pre_error);
-			Dout = _Kd * derivative;
-
-			output = Pout + Iout + Dout;
-
-			_pre_error = error;
-
-			//use sct
-
-			//LPC_SCT0->MATCHREL[1].L =
-
-
-			/*tighten->write(false);
-			loosen->write(true);
-			tighten->write(false);		//test program
-			loosen->write(false);
-
-*/
-			if (error < 40) {
-				if (error<0){
-					tighten->write(false);
-					loosen->write(true);
+				if (error > 0) {
+					abserror = error;
+				} else {
+					abserror = error * -1;
 				}
-				else{
-					tighten->write(true);
-					loosen->write(false);
+
+				tickVar = _Kp * abserror;
+
+				if (abserror < tolerance && abserror > 0.2) {
+					if (error < 0){
+						tighten->write(false);
+						loosen->write(true);
+					}
+					else{
+						tighten->write(true);
+						loosen->write(false);
+					}
 				}
 			}
-		}
 		} else {
 			tighten->write(false);
 			loosen->write(false);

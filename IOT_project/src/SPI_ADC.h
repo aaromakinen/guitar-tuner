@@ -17,11 +17,11 @@
 #endif
 
 #define PORT_CS		0
-#define PIN_CS		9
+#define PIN_CS		5 // Old 9
 #define PORT_CLK	0
-#define PIN_CLK		0
+#define PIN_CLK		7 // Old 0
 #define PORT_MISO	0
-#define PIN_MISO	10
+#define PIN_MISO	6 // Old 10
 
 #define NUM_SAMPLES		570
 #define SAMPLING_RATE	20000

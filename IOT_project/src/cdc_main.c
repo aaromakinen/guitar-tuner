@@ -226,7 +226,7 @@ void cdc_task(void *pvParameters)
 	while(vcom_connected() == 0) {
 #ifndef POLLING_CDC
 		/* Sleep until next IRQ happens */
-		//xSemaphoreTake(xCDCEventSemaphore, configTICK_RATE_HZ / 10);
+		xSemaphoreTake(xCDCEventSemaphore, configTICK_RATE_HZ / 10);
 		/* NOTE: if you have problems with connecting the vcom port. Try commenting out the line above
 		 * Some computers seems to require polling during connection for currently unknown reason
 		 */

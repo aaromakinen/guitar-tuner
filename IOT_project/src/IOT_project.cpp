@@ -478,27 +478,27 @@ int main(void) {
 	Chip_SCT_Init(LPC_SCT0);
 	Chip_PININT_Init(LPC_GPIO_PIN_INT);
 
-	Chip_SWM_MovablePortPinAssign(SWM_SCT0_OUT0_O,0,12);
+	Chip_SWM_MovablePortPinAssign(SWM_SCT0_OUT0_O,0, 8); // Old 0, 12
 	SCT_Init();
 
-	sw1 = new DigitalIoPin(0, 28, true, true, true);
-	sw2 = new DigitalIoPin(0, 27, true, true, true);
-	sw3 = new DigitalIoPin(1, 0, true, true, true);
-	sw4 = new DigitalIoPin(0, 24, true, true, true);
+	sw1 = new DigitalIoPin(0, 24, true, true, true); // Old 0, 28
+	sw2 = new DigitalIoPin(1, 0, true, true, true); // Old 0, 27
+	sw3 = new DigitalIoPin(0, 27, true, true, true); // Old 1, 0
+	sw4 = new DigitalIoPin(0, 28, true, true, true); // Old 0, 24
 
-	tighten = new DigitalIoPin(1, 10, false, true, true);
-	loosen = new DigitalIoPin(1, 9, false, true, true);
+	tighten = new DigitalIoPin(1, 8, false, true, true); // Old 1, 10
+	loosen = new DigitalIoPin(1, 6, false, true, true); // Old 1, 9
 
 	out->write(true);
 	loosen->write(false);
 	tighten->write(false);
 
-	rs = new DigitalIoPin(0, 8, false, true, false);
-	en = new DigitalIoPin(1, 6, false, true, false);
-	d4 = new DigitalIoPin(1, 8, false, true, false);
-	d5 = new DigitalIoPin(0, 5, false, true, false);
-	d6 = new DigitalIoPin(0, 6, false, true, false);
-	d7 = new DigitalIoPin(0, 7, false, true, false);
+	rs = new DigitalIoPin(0, 29, false, true, false); // Old 0, 8
+	en = new DigitalIoPin(0, 9, false, true, false); // Old 1, 6
+	d4 = new DigitalIoPin(0, 10, false, true, false); // Old 1, 8
+	d5 = new DigitalIoPin(1, 9, false, true, false); // Old 0, 5
+	d6 = new DigitalIoPin(1, 3, false, true, false); // Old 0, 6
+	d7 = new DigitalIoPin(0, 0, false, true, false); // Old 0, 7
 	lcd = new LiquidCrystal(rs, en, d4, d5, d6, d7);
 
 	lcd->begin(18,2);

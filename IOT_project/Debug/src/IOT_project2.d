@@ -1,4 +1,4 @@
-src/cdc_main.o src/cdc_main.d: ../src/cdc_main.c \
+src/IOT_project2.o src/IOT_project2.d: ../src/IOT_project2.cpp \
  C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_board_nxp_lpcxpresso_1549\inc/board.h \
  C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc/chip.h \
  C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc/lpc_types.h \
@@ -49,22 +49,6 @@ src/cdc_main.o src/cdc_main.d: ../src/cdc_main.c \
  C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc/i2cs_15xx.h \
  C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_board_nxp_lpcxpresso_1549\inc/board_api.h \
  C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc/lpc_types.h \
- ../src/app_usbd_cfg.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc/error.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_rom_api.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_hw.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_core.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\IOT_project\src/app_usbd_cfg.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_mscuser.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_msc.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_dfuuser.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_dfu.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_hiduser.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_hid.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_cdcuser.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_cdc.h \
- ../src/cdc_vcom.h \
  C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/FreeRTOS.h \
  C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\inc/FreeRTOSConfig.h \
  C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/projdefs.h \
@@ -72,10 +56,16 @@ src/cdc_main.o src/cdc_main.d: ../src/cdc_main.c \
  C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/deprecated_definitions.h \
  C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\portable\GCC\ARM_CM3/portmacro.h \
  C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/mpu_wrappers.h \
- C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/queue.h \
+ C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/task.h \
+ C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/list.h \
  C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/semphr.h \
  C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/queue.h \
- ../src/ITM_write.h ../src/user_vcom.h
+ ../src/DigitalIoPin.h ../src/LiquidCrystal.h ../src/user_vcom.h \
+ C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/event_groups.h \
+ C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/timers.h \
+ C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/task.h \
+ ../src/Fmutex.h ../src/notes.h ../src/SPI_ADC.h ../src/RIT.h \
+ ../src/Yin.h
 
 C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_board_nxp_lpcxpresso_1549\inc/board.h:
 
@@ -177,38 +167,6 @@ C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_board_nxp_lpcxpre
 
 C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc/lpc_types.h:
 
-../src/app_usbd_cfg.h:
-
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc/error.h:
-
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_rom_api.h:
-
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd.h:
-
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_hw.h:
-
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_core.h:
-
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\IOT_project\src/app_usbd_cfg.h:
-
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_mscuser.h:
-
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_msc.h:
-
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_dfuuser.h:
-
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_dfu.h:
-
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_hiduser.h:
-
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_hid.h:
-
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_cdcuser.h:
-
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\inc\usbd/usbd_cdc.h:
-
-../src/cdc_vcom.h:
-
 C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/FreeRTOS.h:
 
 C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\inc/FreeRTOSConfig.h:
@@ -223,12 +181,32 @@ C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\portable
 
 C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/mpu_wrappers.h:
 
-C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/queue.h:
+C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/task.h:
+
+C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/list.h:
 
 C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/semphr.h:
 
 C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/queue.h:
 
-../src/ITM_write.h:
+../src/DigitalIoPin.h:
+
+../src/LiquidCrystal.h:
 
 ../src/user_vcom.h:
+
+C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/event_groups.h:
+
+C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/timers.h:
+
+C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\src\include/task.h:
+
+../src/Fmutex.h:
+
+../src/notes.h:
+
+../src/SPI_ADC.h:
+
+../src/RIT.h:
+
+../src/Yin.h:

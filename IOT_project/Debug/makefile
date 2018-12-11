@@ -44,7 +44,7 @@ all: IOT_project.axf
 IOT_project.axf: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: MCU C++ Linker'
-	arm-none-eabi-c++ -nostdlib -L"/Users/sam/Documents/MCUXpressoIDE_10.1.1/workspace/lpc_board_nxp_lpcxpresso_1549/Debug" -L"/Users/sam/Documents/MCUXpressoIDE_10.1.1/workspace/lpc_chip_15xx/Debug" -L"/Users/sam/Documents/MCUXpressoIDE_10.1.1/workspace/FreeRTOS/Debug" -L/IOT_project/src -Xlinker -Map="IOT_project.map" -Xlinker --gc-sections -Xlinker -print-memory-usage -mcpu=cortex-m3 -mthumb -T "IOT_project_Debug.ld" -o "IOT_project.axf" $(OBJS) $(USER_OBJS) $(LIBS)
+	arm-none-eabi-c++ -nostdlib -L"C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_board_nxp_lpcxpresso_1549\Debug" -L"C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\lpc_chip_15xx\Debug" -L"C:\Users\aaro\Documents\MCUXpressoIDE_10.2.1_795\workspace\FreeRTOS\Debug" -L/IOT_project/src -Xlinker -Map="IOT_project.map" -Xlinker --gc-sections -Xlinker -print-memory-usage -mcpu=cortex-m3 -mthumb -T "IOT_project_Debug.ld" -o "IOT_project.axf" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 	$(MAKE) --no-print-directory post-build
@@ -59,7 +59,6 @@ post-build:
 	-arm-none-eabi-size "IOT_project.axf"; # arm-none-eabi-objcopy -v -O binary "IOT_project.axf" "IOT_project.bin" ; # checksum -p LPC1549 -d "IOT_project.bin";
 	-@echo ' '
 
-.PHONY: all clean dependents
-.SECONDARY: post-build
+.PHONY: all clean dependents post-build
 
 -include ../makefile.targets

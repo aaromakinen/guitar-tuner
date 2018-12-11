@@ -76,7 +76,7 @@ SPI_ADC::SPI_ADC() {
 	// SPI interrupt
 	LPC_SPI0->INTENSET = SPI_INTENSET_RXRDYEN;	// Enable interrupt when receiver data is available
 	NVIC_EnableIRQ(SPI0_IRQn);					// Enable interrupt in NVIC
-	NVIC_SetPriority(SPI0_IRQn, 5);
+	NVIC_SetPriority(SPI0_IRQn, 6);
 
 //	/*
 //	 * RIT configuration

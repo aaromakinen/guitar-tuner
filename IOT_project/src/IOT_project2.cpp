@@ -46,7 +46,7 @@ Fmutex *mutex;
 Fmutex *ritmutex;
 SemaphoreHandle_t pidSem;
 EventGroupHandle_t xEventGroup;
-DigitalIoPin *out, *sw1, *sw2, *sw3, *sw4, *tighten, *loosen, *rs, *en, *d4, *d5, *d6, *d7;
+DigitalIoPin *out, *sw1, *sw2, *sw3, *sw4, *tighten, *loosen, *rs, *en, *d4, *d5, *d6, *d7,*red_led,*green_led;
 LiquidCrystal *lcd;
 
 std::atomic<int> string{0};
@@ -98,11 +98,14 @@ static int16_t ar[NUM_SAMPLES];
 int ar_index = 0;
 bool semBool = 0;
 volatile uint32_t RIT_count;
+bool rit_spi = true;
 
 extern "C"{
 void RIT_IRQHandler(void) {
 
-	myspiv2->InitiateConversion();
+	if (rit_spi){
+		myspiv2->InitiateConversion();
+	}
 
 	if (--RIT_count == 0) {
 		Chip_RIT_Disable(LPC_RITIMER); // disable timer
@@ -152,6 +155,7 @@ static void vDisplay(void *param) {
 
 		if((bits & manual) != 0){
 			ritmutex->lock();
+			rit_spi = false;
 			lcd->print(manual_str);
 			ritmutex->unlock();
 		}
@@ -167,6 +171,7 @@ static void vDisplay(void *param) {
 				temp[(string*2)+6] = ' ';
 			}
 			ritmutex->lock();
+			rit_spi = false;
 			lcd->print(temp);
 			ritmutex->unlock();
 			counter++;
@@ -176,6 +181,7 @@ static void vDisplay(void *param) {
 			if(viewed_tuning==0){
 				temp = "     CUSTOM!B2=cancel B3=select";
 				ritmutex->lock();
+				rit_spi = false;
 				lcd->print(temp);
 				ritmutex->unlock();
 			}
@@ -186,6 +192,7 @@ static void vDisplay(void *param) {
 				mutex->unlock();
 				temp=buffer;
 				ritmutex->lock();
+				rit_spi = false;
 				lcd->print(temp);
 				ritmutex->unlock();
 			}
@@ -218,8 +225,16 @@ static void vPID(void *param) {
 				}
 
 				tickVar = _Kp * abserror;
+				if(abserror > 0.3){
+					red_led->write(true);
+					green_led->write(false);
+				}
+				else{
+					red_led->write(false);
+					green_led->write(true);
 
-				if (abserror < tolerance && abserror > 0.2) {
+				}
+				if (abserror < tolerance && abserror > 0.3) {
 					if (error < 0){
 						tighten->write(false);
 						loosen->write(true);
@@ -228,9 +243,24 @@ static void vPID(void *param) {
 						tighten->write(true);
 						loosen->write(false);
 					}
+
 				}
+				else{
+					tighten->write(false);
+					loosen->write(false);
+
+
+				}
+			} else {
+				red_led->write(false);
+				green_led->write(false);
+
+				tighten->write(false);
+				loosen->write(false);
 			}
-		} else {
+
+		}
+		else{
 			tighten->write(false);
 			loosen->write(false);
 		}
@@ -243,6 +273,7 @@ static void vFrequency(void *param) {
 	float temporary;
 	while(1){
 		ritmutex->lock();
+		rit_spi = true;
 		RIT_start(NUM_SAMPLES, 50);
 		ritmutex->unlock();
 		temporary = Yin_getPitch(&yin, ar);
@@ -273,6 +304,7 @@ static void vMotor(void *param) {
 					vTaskDelay(1);
 				}
 				tighten->write(false);
+
 			}
 			if(sw4->read()){
 				tighten->write(false);
@@ -286,6 +318,8 @@ static void vMotor(void *param) {
 				while(sw2->read()){
 					vTaskDelay(1);
 				}
+
+
 				xEventGroupClearBits(xEventGroup,manual);
 				xEventGroupSetBits(xEventGroup,tuning | temp_manual);
 			}
@@ -394,24 +428,42 @@ static void vMotor(void *param) {
 
 tunes* parse(std::string sent){
 	std::string temp;
-	int count=0;
+	int count=5;
 	tunes *received_notes = new tunes;
+	float temporary;
 	int e;
+	e = sent.find('=');
+	if (std::string::npos == e){
+		e = sent.length();
+	}
 	for(e=0;e<sent.length();e++){
 		if(sent[e] == '='){
 			e++;
-			while(sent[e]!='|' && temp.length() != 3){
+			while(sent[e]!='|' && temp.length() != 6){
 				temp.push_back(sent[e]);
 				e++;
 			}
-			if(lookupNote(temp.c_str()) != -1){
-				received_notes->names[count]=temp;
-				received_notes->strings[count]=lookupNote(temp.c_str());
-				count++;
+			if (temp.length()>=4){
+				temporary = stof(temp);
+				if (temporary >70 && temporary < 550){
+					temp = getNote(temporary);
+					if(temp.length()>=2){
+						received_notes->names[count] = temp;
+						received_notes->strings[count] = temporary;
+					}
+					else{
+						received_notes->strings[0] = -1;
+					}
+				}
+				else{
+					received_notes->strings[0] = -1;
+				}
 			}
-			else {
-				received_notes->strings[0]=-1.0;
+			else{
+				received_notes->strings[0] = -1;
 			}
+
+			count--;
 			temp="";
 
 		}
@@ -427,10 +479,11 @@ static void receive_task(void *pvParameters) {
 	char str[80];
 	int a;
 	int32_t len;
-	vTaskDelay(10);
+	vTaskDelay(1000);
 
 	while(1){
-		len = USB_receive((uint8_t *)str, 79);
+
+		len = USB_receive((uint8_t *)str, 80);
 
 		for(a=0;a<len;a++){
 			if(str[a] != '!' && cnt <=47){
@@ -441,19 +494,23 @@ static void receive_task(void *pvParameters) {
 			{
 				cnt=0;
 
-
-				tunes *freqs =  parse(sentence);
-				if(freqs->strings[0] != -1){
-					mutex->lock();
-					memcpy(pre_tunings,freqs, sizeof (*freqs));
-					mutex->unlock();
+				if(sentence.length() >= 42){
+					tunes *freqs =  parse(sentence);
+					if(freqs->strings[0] != -1){
+						mutex->lock();
+						pre_tunings[0] = *freqs;
+						//memcpy(pre_tunings,freqs, sizeof (*freqs));
+						mutex->unlock();
+					}
+					delete freqs;
 				}
-				delete freqs;
 				sentence = "";
+
 			}
 
 
 		}
+
 		vTaskDelay(1);
 	}
 
@@ -492,7 +549,10 @@ int main(void) {
 	out->write(true);
 	loosen->write(false);
 	tighten->write(false);
-
+	red_led = new DigitalIoPin(0, 14, false, false, false);
+	green_led = new DigitalIoPin(0, 12, false, false, false);
+	red_led->write(false);
+	green_led->write(false);
 	rs = new DigitalIoPin(0, 29, false, true, false); // Old 0, 8
 	en = new DigitalIoPin(0, 9, false, true, false); // Old 1, 6
 	d4 = new DigitalIoPin(0, 10, false, true, false); // Old 1, 8
@@ -526,23 +586,25 @@ int main(void) {
 	ritmutex = new Fmutex();
 
 	xTaskCreate(vDisplay, "vDisp",
-			configMINIMAL_STACK_SIZE *3 , NULL, (tskIDLE_PRIORITY + 1UL),
+			configMINIMAL_STACK_SIZE *4 , NULL, (tskIDLE_PRIORITY + 1UL),
 			(TaskHandle_t *) NULL);
 	xTaskCreate(vMotor, "vMotor",
-			configMINIMAL_STACK_SIZE *3 , NULL, (tskIDLE_PRIORITY + 1UL),
+			configMINIMAL_STACK_SIZE *1 , NULL, (tskIDLE_PRIORITY + 1UL),
 			(TaskHandle_t *) NULL);
 	xTaskCreate(vFrequency, "vFreq",
 			configMINIMAL_STACK_SIZE *3 , NULL, (tskIDLE_PRIORITY + 1UL),
 			(TaskHandle_t *) NULL);
+
 	xTaskCreate(vPID, "vPID",
-			configMINIMAL_STACK_SIZE *3 , NULL, (tskIDLE_PRIORITY + 1UL),
+			configMINIMAL_STACK_SIZE *1 , NULL, (tskIDLE_PRIORITY + 1UL),
 			(TaskHandle_t *) NULL);
 	xTaskCreate(cdc_task, "CDC",
-			configMINIMAL_STACK_SIZE * 3, NULL, (tskIDLE_PRIORITY + 1UL),
+			configMINIMAL_STACK_SIZE * 2, NULL, (tskIDLE_PRIORITY + 2UL),
 			(TaskHandle_t *) NULL);
 	xTaskCreate(receive_task, "Rx",
-			configMINIMAL_STACK_SIZE * 8, NULL, (tskIDLE_PRIORITY + 1UL),
+			configMINIMAL_STACK_SIZE * 2, NULL, (tskIDLE_PRIORITY + 1UL),
 			(TaskHandle_t *) NULL);
+
 	vTaskStartScheduler();
 
 	// Force the counter to be placed into memory

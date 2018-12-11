@@ -12,9 +12,9 @@
 //#define POLLING_CDC
 
 /* number of USB receive buffers */
-#define RCV_BUFFERS 16
+#define RCV_BUFFERS 3
 /* size of receive buffers */
-#define RCV_BUFSIZE 64
+#define RCV_BUFSIZE 80
 
 
 /* this is needed to start CDC USB task. Since CDC functions are written in C we need

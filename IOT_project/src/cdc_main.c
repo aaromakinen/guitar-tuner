@@ -146,6 +146,9 @@ USB_INTERFACE_DESCRIPTOR *find_IntfDesc(const uint8_t *pDesc, uint32_t intfClass
  */
 void cdc_task(void *pvParameters)
 {
+
+
+
 	USBD_API_INIT_PARAM_T usb_param;
 	USB_CORE_DESCS_T desc;
 	ErrorCode_t ret = LPC_OK;
@@ -213,6 +216,8 @@ void cdc_task(void *pvParameters)
 		/* Init VCOM interface */
 		ret = vcom_init(g_hUsb, &desc, &usb_param);
 		if (ret == LPC_OK) {
+			NVIC_SetPriority(USB0_IRQn,6);
+
 			/*  enable USB interrupts */
 			NVIC_EnableIRQ(USB0_IRQn);
 			/* now connect */
@@ -237,6 +242,7 @@ void cdc_task(void *pvParameters)
 
 
 	while (1) {
+
 		/* try allocate receive buffer if we have none */
 		if(rcv.dptr == NULL) {
 			if(xQueueReceive(AllocQueue, &rcv, 0) == pdFALSE) rcv.dptr = NULL;

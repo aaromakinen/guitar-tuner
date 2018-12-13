@@ -1,3 +1,7 @@
+// Modified version of yin.c from https://github.com/ashokfernandez/Yin-Pitch-Tracking
+// Original written by Ashok Fernandez
+
+
 #include <stdint.h> /* For standard integer types (int16_t) */
 #include <stdlib.h> /* For call to malloc */
 #include "Yin.h"

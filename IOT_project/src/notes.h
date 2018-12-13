@@ -1,3 +1,5 @@
+// Functions for lookup of notes by name and frequency
+
 #include "string.h"
 char* getNote(float freq);
 float lookupNote(const char* name);
@@ -67,7 +69,7 @@ static struct Notes notestruct[] = {
 
 char* getNote(float freq) { // Get note name from frequency
 	int i = 0;
-		while (freq >= notestruct[i].lolim) {
+		while (freq >= notestruct[i].lolim) { // Search for first frequency lower limit that is higher than input freq.
 			i++;
 		}
 
@@ -88,7 +90,7 @@ float lookupNote(const char* name) { // Get reference frequency from note name
 	return -1.0; // Indicates name not found in table.
 }
 
-int sameName(const char* n1, char* n2, int len) {
+int sameName(const char* n1, char* n2, int len) { // Compare C strings to specified length
 	int i = 0;
 	int r = 0;
 

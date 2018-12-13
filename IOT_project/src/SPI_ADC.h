@@ -1,10 +1,3 @@
-/*
- * SPIv2.h
- *
- *  Created on: Nov 24, 2018
- *      Author: Martin
- */
-
 #ifndef SPI_ADC_H_
 #define SPI_ADC_H_
 
@@ -17,18 +10,17 @@
 #endif
 
 #define PORT_CS		0
-#define PIN_CS		5 // Old 9
+#define PIN_CS		5
 #define PORT_CLK	0
-#define PIN_CLK		7 // Old 0
+#define PIN_CLK		7
 #define PORT_MISO	0
-#define PIN_MISO	6 // Old 10
+#define PIN_MISO	6
 
 #define NUM_SAMPLES		570
 #define SAMPLING_RATE	20000
 
 /*
  * SPI peripheral configured to get samples from MCP3201
- * 50 kHz max sampling rate
  */
 
 class SPI_ADC {

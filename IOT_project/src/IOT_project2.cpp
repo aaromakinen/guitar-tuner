@@ -46,7 +46,7 @@ Fmutex *mutex;
 Fmutex *ritmutex;
 SemaphoreHandle_t pidSem;
 EventGroupHandle_t xEventGroup;
-DigitalIoPin *out, *sw1, *sw2, *sw3, *sw4, *tighten, *loosen, *rs, *en, *d4, *d5, *d6, *d7;
+DigitalIoPin *out, *sw1, *sw2, *sw3, *sw4, *tighten, *loosen, *rs, *en, *d4, *d5, *d6, *d7,*red_led,*green_led;
 LiquidCrystal *lcd;
 
 std::atomic<int> string{0};
@@ -75,34 +75,21 @@ enum strings{
 	b,
 	e
 };
-// TODO: insert other definitions and declarations here
-/*extern "C" {
-void PIN_INT0_IRQHandler(void){
 
-}
-
-void PIN_INT1_IRQHandler(void){
-
-
-}
-}
- */
-
-
-
-
-
-SPI_ADC* myspiv2;
+SPI_ADC* spiadc0;
 
 static int16_t ar[NUM_SAMPLES];
 int ar_index = 0;
 bool semBool = 0;
 volatile uint32_t RIT_count;
+bool rit_spi = true;
 
 extern "C"{
 void RIT_IRQHandler(void) {
 
-	myspiv2->InitiateConversion();
+	if (rit_spi){
+		spiadc0->InitiateConversion();
+	}
 
 	if (--RIT_count == 0) {
 		Chip_RIT_Disable(LPC_RITIMER); // disable timer
@@ -114,10 +101,8 @@ void RIT_IRQHandler(void) {
 }
 
 void SPI0_IRQHandler(void) {
-	uint16_t adc_sample = myspiv2->ReadSample();
-	//ar[ar_index] = adc_sample - 1638;
+	uint16_t adc_sample = spiadc0->ReadSample();
 	ar[ar_index] = adc_sample - 2048;
-	//ar[ar_index] = adc_sample;
 	ar_index++;
 }
 }
@@ -139,6 +124,7 @@ void SCT_Init(void)
 
 	LPC_SCT0->CTRL_L &= ~(1 << 2); // unhalt it by clearing bit 2 of CTRL reg
 }
+
 static void vDisplay(void *param) {
 	char buffer[41];
 	std::string manual_str = "     MANUAL MODE!B1=loosen B4=tighten";
@@ -152,6 +138,7 @@ static void vDisplay(void *param) {
 
 		if((bits & manual) != 0){
 			ritmutex->lock();
+			rit_spi = false;
 			lcd->print(manual_str);
 			ritmutex->unlock();
 		}
@@ -167,6 +154,7 @@ static void vDisplay(void *param) {
 				temp[(string*2)+6] = ' ';
 			}
 			ritmutex->lock();
+			rit_spi = false;
 			lcd->print(temp);
 			ritmutex->unlock();
 			counter++;
@@ -176,6 +164,7 @@ static void vDisplay(void *param) {
 			if(viewed_tuning==0){
 				temp = "     CUSTOM!B2=cancel B3=select";
 				ritmutex->lock();
+				rit_spi = false;
 				lcd->print(temp);
 				ritmutex->unlock();
 			}
@@ -186,6 +175,7 @@ static void vDisplay(void *param) {
 				mutex->unlock();
 				temp=buffer;
 				ritmutex->lock();
+				rit_spi = false;
 				lcd->print(temp);
 				ritmutex->unlock();
 			}
@@ -195,31 +185,55 @@ static void vDisplay(void *param) {
 		vTaskDelay(100);
 	}
 }
+
+// Motor control task
 static void vPID(void *param) {
 	float error;
 	float abserror;
+
+	// Maximum error from target freq. Beyond this, ignore. Used as safety feature.
 	float tolerance = 20.0;
+
+	// Determines how long motor will run.
 	TickType_t tickVar = portMAX_DELAY;
-	float _Kp = 100.0; // proportional constant
+
+	// Proportional constant
+	float _Kp = 100.0;
 
 	while(1){
 
+		// Run motor for previously calculated interval unless new reading is received sooner
 		if (xSemaphoreTake(pidSem, tickVar) == pdTRUE) {
 
-			if((xEventGroupGetBits(xEventGroup) & automatic) != 0){
+			// Check that program is in automatic mode
+			if ((xEventGroupGetBits(xEventGroup) & automatic) != 0) {
 				mutex->lock();
 				error = desired_tuning.strings[string] - detected_frequency;
 				mutex->unlock();
 
+				// Calculate absolute value of error
 				if (error > 0) {
 					abserror = error;
 				} else {
 					abserror = error * -1;
 				}
 
+				// Update time to run motor during next iteration
 				tickVar = _Kp * abserror;
 
-				if (abserror < tolerance && abserror > 0.2) {
+				// Status LEDs
+				if(abserror > 0.3){
+					red_led->write(true);
+					green_led->write(false);
+				}
+				else{
+					red_led->write(false);
+					green_led->write(true);
+
+				}
+
+				// Determine motor direction
+				if (abserror < tolerance && abserror > 0.3) {
 					if (error < 0){
 						tighten->write(false);
 						loosen->write(true);
@@ -228,35 +242,52 @@ static void vPID(void *param) {
 						tighten->write(true);
 						loosen->write(false);
 					}
+				} else {
+					tighten->write(false);
+					loosen->write(false);
 				}
+
+			// If mode is switched, stop motor and turn off LEDs
+			} else {
+				red_led->write(false);
+				green_led->write(false);
+
+				tighten->write(false);
+				loosen->write(false);
 			}
+
+		// Turn motor off at end of calculate time
 		} else {
 			tighten->write(false);
 			loosen->write(false);
 		}
 	}
 }
+
+// YIN fundamental frequency calculation from ADC samples
 static void vFrequency(void *param) {
-	myspiv2 = new SPI_ADC();
+	spiadc0 = new SPI_ADC();
 	Yin yin;
 	Yin_init(&yin, NUM_SAMPLES, YIN_DEFAULT_THRESHOLD); // 95% accuracy setting with NUM_SAMPLES samples
 	float temporary;
 	while(1){
 		ritmutex->lock();
+		rit_spi = true; // Enable ADC sampling in RIT
 		RIT_start(NUM_SAMPLES, 50);
 		ritmutex->unlock();
 		temporary = Yin_getPitch(&yin, ar);
-		if(temporary != -1.0){
+		if (temporary != -1.0) { // If new frequency is read (value returned is -1 otherwise)
 			mutex->lock();
 			detected_frequency = temporary;
 			mutex->unlock();
-			xSemaphoreGive(pidSem);
+			xSemaphoreGive(pidSem); // Trigger motor movement
 		}
 		vTaskDelay(10);
 	}
 }
 
-static void vMotor(void *param) {
+// Menu/mode settings and manual mode motor control task
+static void vMenu(void *param) {
 	int cnt=0;
 	int pre_tuning_total = 3;
 	EventBits_t bits;
@@ -273,6 +304,7 @@ static void vMotor(void *param) {
 					vTaskDelay(1);
 				}
 				tighten->write(false);
+
 			}
 			if(sw4->read()){
 				tighten->write(false);
@@ -286,6 +318,8 @@ static void vMotor(void *param) {
 				while(sw2->read()){
 					vTaskDelay(1);
 				}
+
+
 				xEventGroupClearBits(xEventGroup,manual);
 				xEventGroupSetBits(xEventGroup,tuning | temp_manual);
 			}
@@ -392,26 +426,45 @@ static void vMotor(void *param) {
 	}
 }
 
+// Parse frequencies received via USB
 tunes* parse(std::string sent){
 	std::string temp;
-	int count=0;
+	int count=5;
 	tunes *received_notes = new tunes;
+	float temporary;
 	int e;
+	e = sent.find('=');
+	if (std::string::npos == e){
+		e = sent.length();
+	}
 	for(e=0;e<sent.length();e++){
 		if(sent[e] == '='){
 			e++;
-			while(sent[e]!='|' && temp.length() != 3){
+			while(sent[e]!='|' && temp.length() != 6){
 				temp.push_back(sent[e]);
 				e++;
 			}
-			if(lookupNote(temp.c_str()) != -1){
-				received_notes->names[count]=temp;
-				received_notes->strings[count]=lookupNote(temp.c_str());
-				count++;
+			if (temp.length()>=4){
+				temporary = stof(temp);
+				if (temporary >70 && temporary < 550){
+					temp = getNote(temporary);
+					if(temp.length()>=2){
+						received_notes->names[count] = temp;
+						received_notes->strings[count] = temporary;
+					}
+					else{
+						received_notes->strings[0] = -1;
+					}
+				}
+				else{
+					received_notes->strings[0] = -1;
+				}
 			}
-			else {
-				received_notes->strings[0]=-1.0;
+			else{
+				received_notes->strings[0] = -1;
 			}
+
+			count--;
 			temp="";
 
 		}
@@ -419,18 +472,19 @@ tunes* parse(std::string sent){
 	return received_notes;
 }
 
-
-static void receive_task(void *pvParameters) {
+// USB receive task
+static void vReceive(void *pvParameters) {
 	std::string sentence;
 
 	int cnt=0;
 	char str[80];
 	int a;
 	int32_t len;
-	vTaskDelay(10);
+	vTaskDelay(1000);
 
 	while(1){
-		len = USB_receive((uint8_t *)str, 79);
+
+		len = USB_receive((uint8_t *)str, 80);
 
 		for(a=0;a<len;a++){
 			if(str[a] != '!' && cnt <=47){
@@ -441,19 +495,22 @@ static void receive_task(void *pvParameters) {
 			{
 				cnt=0;
 
-
-				tunes *freqs =  parse(sentence);
-				if(freqs->strings[0] != -1){
-					mutex->lock();
-					memcpy(pre_tunings,freqs, sizeof (*freqs));
-					mutex->unlock();
+				if(sentence.length() >= 42){
+					tunes *freqs =  parse(sentence);
+					if(freqs->strings[0] != -1){
+						mutex->lock();
+						pre_tunings[0] = *freqs;
+						mutex->unlock();
+					}
+					delete freqs;
 				}
-				delete freqs;
 				sentence = "";
+
 			}
 
 
 		}
+
 		vTaskDelay(1);
 	}
 
@@ -474,45 +531,37 @@ int main(void) {
 #endif
 #endif
 
-	// TODO: insert code here
 	Chip_SCT_Init(LPC_SCT0);
 	Chip_PININT_Init(LPC_GPIO_PIN_INT);
 
-	Chip_SWM_MovablePortPinAssign(SWM_SCT0_OUT0_O,0, 8); // Old 0, 12
+	Chip_SWM_MovablePortPinAssign(SWM_SCT0_OUT0_O,0, 8);
 	SCT_Init();
 
-	sw1 = new DigitalIoPin(0, 24, true, true, true); // Old 0, 28
-	sw2 = new DigitalIoPin(1, 0, true, true, true); // Old 0, 27
-	sw3 = new DigitalIoPin(0, 27, true, true, true); // Old 1, 0
-	sw4 = new DigitalIoPin(0, 28, true, true, true); // Old 0, 24
+	sw1 = new DigitalIoPin(0, 24, true, true, true);
+	sw2 = new DigitalIoPin(1, 0, true, true, true);
+	sw3 = new DigitalIoPin(0, 27, true, true, true);
+	sw4 = new DigitalIoPin(0, 28, true, true, true);
 
-	tighten = new DigitalIoPin(1, 8, false, true, true); // Old 1, 10
-	loosen = new DigitalIoPin(1, 6, false, true, true); // Old 1, 9
+	tighten = new DigitalIoPin(1, 8, false, true, true);
+	loosen = new DigitalIoPin(1, 6, false, true, true);
 
 	out->write(true);
 	loosen->write(false);
 	tighten->write(false);
-
-	rs = new DigitalIoPin(0, 29, false, true, false); // Old 0, 8
-	en = new DigitalIoPin(0, 9, false, true, false); // Old 1, 6
-	d4 = new DigitalIoPin(0, 10, false, true, false); // Old 1, 8
-	d5 = new DigitalIoPin(1, 9, false, true, false); // Old 0, 5
-	d6 = new DigitalIoPin(1, 3, false, true, false); // Old 0, 6
-	d7 = new DigitalIoPin(0, 0, false, true, false); // Old 0, 7
+	red_led = new DigitalIoPin(0, 14, false, false, false);
+	green_led = new DigitalIoPin(0, 12, false, false, false);
+	red_led->write(false);
+	green_led->write(false);
+	rs = new DigitalIoPin(0, 29, false, true, false);
+	en = new DigitalIoPin(0, 9, false, true, false);
+	d4 = new DigitalIoPin(0, 10, false, true, false);
+	d5 = new DigitalIoPin(1, 9, false, true, false);
+	d6 = new DigitalIoPin(1, 3, false, true, false);
+	d7 = new DigitalIoPin(0, 0, false, true, false);
 	lcd = new LiquidCrystal(rs, en, d4, d5, d6, d7);
 
 	lcd->begin(18,2);
-	/*LPC_INMUX->PINTSEL[0] = 17;
-	LPC_INMUX->PINTSEL[1] = 43;
 
-	LPC_GPIO_PIN_INT->SIENF = 3;
-	LPC_GPIO_PIN_INT->ISEL = 0;
-
-	NVIC_SetPriority(PIN_INT0_IRQn, configMAX_SYSCALL_INTERRUPT_PRIORITY + 1 );
-	NVIC_SetPriority(PIN_INT1_IRQn, configMAX_SYSCALL_INTERRUPT_PRIORITY + 1 );
-
-	NVIC_EnableIRQ(PIN_INT0_IRQn);
-	NVIC_EnableIRQ(PIN_INT1_IRQn);*/
 	Chip_RIT_Init(LPC_RITIMER);				// initialize RIT (= enable clocking etc.)
 	NVIC_SetPriority( RITIMER_IRQn, 5 );	// set the priority level of the interrupt
 
@@ -526,23 +575,25 @@ int main(void) {
 	ritmutex = new Fmutex();
 
 	xTaskCreate(vDisplay, "vDisp",
-			configMINIMAL_STACK_SIZE *3 , NULL, (tskIDLE_PRIORITY + 1UL),
+			configMINIMAL_STACK_SIZE *4 , NULL, (tskIDLE_PRIORITY + 1UL),
 			(TaskHandle_t *) NULL);
-	xTaskCreate(vMotor, "vMotor",
-			configMINIMAL_STACK_SIZE *3 , NULL, (tskIDLE_PRIORITY + 1UL),
+	xTaskCreate(vMenu, "vMenu",
+			configMINIMAL_STACK_SIZE *1 , NULL, (tskIDLE_PRIORITY + 1UL),
 			(TaskHandle_t *) NULL);
 	xTaskCreate(vFrequency, "vFreq",
 			configMINIMAL_STACK_SIZE *3 , NULL, (tskIDLE_PRIORITY + 1UL),
 			(TaskHandle_t *) NULL);
+
 	xTaskCreate(vPID, "vPID",
-			configMINIMAL_STACK_SIZE *3 , NULL, (tskIDLE_PRIORITY + 1UL),
+			configMINIMAL_STACK_SIZE *1 , NULL, (tskIDLE_PRIORITY + 1UL),
 			(TaskHandle_t *) NULL);
 	xTaskCreate(cdc_task, "CDC",
-			configMINIMAL_STACK_SIZE * 3, NULL, (tskIDLE_PRIORITY + 1UL),
+			configMINIMAL_STACK_SIZE * 2, NULL, (tskIDLE_PRIORITY + 2UL),
 			(TaskHandle_t *) NULL);
-	xTaskCreate(receive_task, "Rx",
-			configMINIMAL_STACK_SIZE * 8, NULL, (tskIDLE_PRIORITY + 1UL),
+	xTaskCreate(vReceive, "vRcv",
+			configMINIMAL_STACK_SIZE * 2, NULL, (tskIDLE_PRIORITY + 1UL),
 			(TaskHandle_t *) NULL);
+
 	vTaskStartScheduler();
 
 	// Force the counter to be placed into memory

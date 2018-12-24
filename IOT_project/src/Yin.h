@@ -1,9 +1,11 @@
+// Modified version of yin.h from https://github.com/ashokfernandez/Yin-Pitch-Tracking
+// Original written by Ashok Fernandez
+
 #ifndef Yin_h
 #define Yin_h
 
 #include <stdint.h>
 
-//#define YIN_SAMPLING_RATE 48000 // 48 kHz sampling rate
 #define YIN_SAMPLING_RATE 20000
 #define YIN_DEFAULT_THRESHOLD 0.05
 
